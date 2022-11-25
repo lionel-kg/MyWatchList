@@ -3,7 +3,11 @@
 namespace App\Entity;
 
 use App\Repository\MangaRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+
 
 /**
  * @ORM\Entity(repositoryClass=MangaRepository::class)
@@ -18,34 +22,56 @@ class Manga
     private $id;
 
     /**
+     * @Groups({"info_manga"})
      * @ORM\Column(type="string", length=255)
      */
     private $originalName;
 
     /**
+     * @Groups({"info_manga"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $duration;
 
     /**
+     * @Groups({"info_manga"})
      * @ORM\Column(type="text", nullable=true)
      */
     private $synopsis;
 
     /**
+     * @Groups({"info_manga"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $season;
 
     /**
+     * @Groups({"info_manga"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $background;
 
     /**
+     * @Groups({"info_manga"})
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $type;
+
+    /**
+     * @Groups({"info_manga"})
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $year;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Genre::class, mappedBy="manga", orphanRemoval=true)
+     */
+    private $genres;
+
+    public function __construct()
+    {
+        $this->genres = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -60,7 +86,6 @@ class Manga
     public function setOriginalName(string $originalName): self
     {
         $this->originalName = $originalName;
-
         return $this;
     }
 
@@ -123,4 +148,47 @@ class Manga
 
         return $this;
     }
+
+    public function getYear(): ?int
+    {
+        return $this->year;
+    }
+
+    public function setYear(?int $year): self
+    {
+        $this->year = $year;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, genre>
+     */
+    public function getGenres(): Collection
+    {
+        return $this->genres;
+    }
+
+    public function addGenre(genre $genre): self
+    {
+        if (!$this->genres->contains($genre)) {
+            $this->genres[] = $genre;
+            $genre->setManga($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGenre(genre $genre): self
+    {
+        if ($this->genres->removeElement($genre)) {
+            // set the owning side to null (unless already changed)
+            if ($genre->getManga() === $this) {
+                $genre->setManga(null);
+            }
+        }
+
+        return $this;
+    }
+
 }
